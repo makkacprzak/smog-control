@@ -27,7 +27,7 @@ void save_json_to_file(const string& city, const string& time, const json& senso
     }
 
     // Add new data to variable
-    cityData[time] = sensorData;
+    cityData = sensorData;
 
     ofstream fileOut(filename);
 
@@ -45,7 +45,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream) {
 }
 
 // Return pollution value from sensorID
-float getSensorValue(int sensorID, string paramCode) {
+json getSensorValue(int sensorID, string paramCode) {
     //Initiate curl
     CURL *curl;
     CURLcode result;
@@ -55,7 +55,7 @@ float getSensorValue(int sensorID, string paramCode) {
     //Handle HTTP request exception
     if (curl == nullptr) {
         fprintf(stderr, "HTTP request failed\n");
-        return 0;
+        return "";
     }
 
     string queryURL = "https://api.gios.gov.pl/pjp-api/rest/data/getData/" + to_string(sensorID); // Create custom API URL
@@ -67,7 +67,7 @@ float getSensorValue(int sensorID, string paramCode) {
     // Handle curl request exception
     if (result != CURLE_OK) {
         fprintf(stderr, "Error: %s\n", curl_easy_strerror(result));
-        return 0;
+        return "";
     }
 
     // Try to parse JSON data
@@ -75,11 +75,18 @@ float getSensorValue(int sensorID, string paramCode) {
         json data = json::parse(readBuffer); //Parse
         if (data["key"] == paramCode) {
             if (data.contains("values") && data["values"].is_array() && !data["values"].empty()) {
-                const json& latest = data["values"].front(); // Get latest value
-                if (latest.contains("value") && latest["value"].is_number_float()) {
-                    curl_easy_cleanup(curl); // Cleanup curl
-                    return latest["value"].get<float>();
+                int i = 0;
+                json sensorData;
+                for(auto& vals : data["values"]){
+                    if(!vals["value"].is_null()){
+                        sensorData[i][vals["date"]] = vals["value"];
+                        i++;
+                    }
+                    if(i == 48){
+                        return sensorData;
+                    }
                 }
+                return sensorData;
             }
         }
         // Handle JSON exceptions
@@ -90,7 +97,7 @@ float getSensorValue(int sensorID, string paramCode) {
     }
 
     curl_easy_cleanup(curl);
-    return 0;
+    return "";
 }
 
 
