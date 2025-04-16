@@ -30,12 +30,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         fetchdata.h
         fetchdata.cpp
         jfile.h jfile.cpp
-
-
-
-
-
-
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET smog-control APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
