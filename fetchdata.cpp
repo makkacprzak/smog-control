@@ -1,3 +1,5 @@
+#include <fstream>
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <curl/curl.h>
@@ -6,6 +8,35 @@
 
 using json = nlohmann::json;
 using namespace std;
+
+// Save sensor data to json database
+void save_json_to_file(const string& city, const string& time, const json& sensorData){
+    // Create data directory unless exists
+    filesystem::create_directory("data");
+
+    // Format city file
+    string filename = "data/" + city + ".json";
+    ifstream fileIn(filename);
+
+    json cityData;
+
+    // If city's file exists, load data
+    if (fileIn.is_open()){
+        fileIn >> cityData; // Load data into variable
+        fileIn.close();
+    }
+
+    // Add new data to variable
+    cityData[time] = sensorData;
+
+    ofstream fileOut(filename);
+
+    // Save updated data to city's file
+    if(fileOut.is_open()){
+        fileOut << setw(4) << cityData << endl;
+        fileOut.close();
+    }
+}
 
 // Write curl data to string buffer
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream) {
@@ -63,9 +94,8 @@ float getSensorValue(int sensorID, string paramCode) {
 }
 
 
-string getStationData(int stationID) {
+json getStationData(int stationID) {
     //Initiate curl
-    ostringstream oss;
     CURL *curl;
     CURLcode result;
     string readBuffer;
@@ -90,16 +120,16 @@ string getStationData(int stationID) {
     // Try to parse JSON data
     try {
         json data = json::parse(readBuffer);
-        ostringstream oss;
+        json stationData;
         for(const auto& sensor : data) {
             if (sensor["param"]["paramName"].is_string() && sensor["id"].is_number()) {
                 curl_easy_cleanup(curl);
                 // Print sensor name and values
-                oss << sensor["param"]["paramName"].get<string>() << ": " << getSensorValue(sensor["id"].get<int>(), sensor["param"]["paramCode"].get<string>()) << endl;
+                stationData[sensor["param"]["paramName"].get<string>()] = getSensorValue(sensor["id"].get<int>(), sensor["param"]["paramCode"].get<string>());
             }
 
         }
-        return oss.str();
+        return stationData;
         // Handle JSON exceptions
     }catch (const json::parse_error& e) {
         fprintf(stderr, "JSON parse error: %s\n", e.what());
@@ -138,16 +168,16 @@ string getStationID(string city) {
     // Try to parse JSON data
     try {
         json data = json::parse(readBuffer);
-
+        json newData;
         bool stationFound = false;
         // Search for stations in city
         for(const auto& station : data){
             if (station.contains("city") && station["city"].contains("name") && station["city"]["name"].is_string() && station["city"]["name"] == city) {
                 if (station.contains("id") && station["id"].is_number()){
                     stationFound = true;
-                    oss << station["stationName"].get<string>() << endl;
                     curl_easy_cleanup(curl);
-                    oss << getStationData(station["id"].get<int>());
+                    newData[station["stationName"].get<string>()] = getStationData(station["id"].get<int>());
+                    save_json_to_file(city, "latest", newData);
                 }
 
             }
