@@ -66,23 +66,22 @@ QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param
     QVector<QPointF> points;
 
     if (!file_.contains(station)) {
-        qDebug() << "Brak danych dla podanej stacji";
+        fprintf(stderr, "Brak danych dla podanej stacji\n");
         return points;
     }
 
     if (!file_[station].contains(param)) {
-        qDebug() << "Brak danych dla podanego parametru";
+        fprintf(stderr, "Brak danych dla podanego parametru\n");
         return points;
     }
 
     const auto& measurments = file_[station][param];
 
     if (!measurments.is_array()) {
-        qDebug() << "Dane nie są tablicą";
+        fprintf(stderr, "Dane nie są tablicą\n");
         return points;
     }
 
-    qDebug() << "Przetwarzanie danych dla stacji: " << QString::fromStdString(station);
 
     for (auto i = measurments.rbegin(); i != measurments.rend(); ++i) {
         const auto& entry = *i;
@@ -92,10 +91,9 @@ QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param
 
         const auto& pair = entry.begin();
         string time = pair.key();
-        qDebug() << "Czas: " << QString::fromStdString(time);
 
         if (!pair.value().is_number()) {
-            qDebug() << "Brak wartości liczbowej dla parametru";
+            fprintf(stderr, "Brak wartości liczbowej dla parametru\n");
             continue;
         }
 
@@ -104,26 +102,21 @@ QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param
         // Przycięcie daty do formatu "MM-dd HH:mm"
         QString ts = QString::fromStdString(time);
         QString shortened = ts.mid(5, 11);  // Przycinamy do "MM-dd HH:mm"
-        qDebug() << "Przycięty czas: " << shortened;
 
         // Parsowanie daty
         QDateTime dt = QDateTime::fromString(shortened, "MM-dd HH:mm");
 
         if (!dt.isValid()) {
-            qDebug() << "Błędny format daty: " << shortened;
+            fprintf(stderr, "Incorrect date-time format\n");
             continue;
         }
 
         // Przechodzimy do timestampu
         qint64 x = dt.toMSecsSinceEpoch();
 
-        qDebug() << "Dodano punkt: (" << x << ", " << y << ")";
-
         // Dodanie punktu do wektora
         points.append(QPointF(x, y));
     }
-
-    qDebug() << "Zakończono przetwarzanie. Liczba punktów: " << points.size();
 
     return points;
 }
