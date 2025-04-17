@@ -40,17 +40,7 @@ void Jfile::populateVectors(){
             }
         }
     }
-    for (const auto& item : stations_) {
-        fprintf(stdout, "%s; ", item.c_str());
-    }
-    fprintf(stdout, "\n");
 
-    for (const auto& item : params_) {
-        fprintf(stdout, "%s; ", item.c_str());
-    }
-    fprintf(stdout, "\n");
-
-    fflush(stdout);
     return;
 }
 
