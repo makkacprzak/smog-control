@@ -14,7 +14,6 @@ private:
     std::vector<std::string> stations_;
 public:
     Jfile(const std::string& city);
-    bool contains(const std::vector<std::string> vec,const std::string& str) const;
     void populateVectors();
     std::vector<std::string> getStations() const;
     std::vector<std::string> getParams() const;

@@ -43,11 +43,6 @@ std::string mainwindow::getTextBox(){
     return data.toStdString();
 }
 
-void mainwindow::appendInformation(std::string info){
-    QString data = QString::fromStdString(info);
-    ui -> displayData -> append(data);
-}
-
 void mainwindow::on_searchBtn_clicked()
 {
     string city = mainwindow::getTextBox();

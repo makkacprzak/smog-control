@@ -10,22 +10,21 @@ using namespace std;
 using json = nlohmann::json;
 
 Jfile::Jfile(const string& city) {
+    // Initiate API to .json sequence
     getStationID(city);
 
+    // Read file at correct path
     string filename = "data/" + city + ".json";
     ifstream newFile(filename);
 
+    // If file valid, save to file_
     if(newFile.is_open()){
         newFile >> file_;
     }else{
         fprintf(stderr, "No data on city\n");
     }
+
     populateVectors();
-}
-
-
-bool Jfile::contains(const vector<string> vec, const string& str) const{
-    return find(vec.begin(), vec.end(), str) != vec.end();
 }
 
 void Jfile::populateVectors(){
@@ -65,6 +64,7 @@ QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param
         return points;
     }
 
+    // Select only relevant part of json
     const auto& measurments = file_[station][param];
 
     if (!measurments.is_array()) {
@@ -72,39 +72,38 @@ QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param
         return points;
     }
 
-
+    // Iterate backwards to go from descending to ascending order
     for (auto i = measurments.rbegin(); i != measurments.rend(); ++i) {
         const auto& entry = *i;
         if (!entry.is_object() || entry.empty()) {
             continue;
         }
 
-        const auto& pair = entry.begin();
-        string time = pair.key();
+        const auto& pair = entry.begin(); // Select date-value pair
+        string time = pair.key(); // Single out time
 
+        // If value valid, save to double
         if (!pair.value().is_number()) {
             fprintf(stderr, "Brak wartości liczbowej dla parametru\n");
             continue;
         }
-
         double y = pair.value().get<double>();
 
-        // Przycięcie daty do formatu "MM-dd HH:mm"
+        // Crop date to "MM-dd HH:mm"
         QString ts = QString::fromStdString(time);
-        QString shortened = ts.mid(5, 11);  // Przycinamy do "MM-dd HH:mm"
+        QString shortened = ts.mid(5, 11);
 
-        // Parsowanie daty
+        // Parse date into QDateTime format
         QDateTime dt = QDateTime::fromString(shortened, "MM-dd HH:mm");
 
+        // If valid, convert to epoch time
         if (!dt.isValid()) {
             fprintf(stderr, "Incorrect date-time format\n");
             continue;
         }
-
-        // Przechodzimy do timestampu
         qint64 x = dt.toMSecsSinceEpoch();
 
-        // Dodanie punktu do wektora
+        // Add point to vector
         points.append(QPointF(x, y));
     }
 

@@ -24,16 +24,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QTextBrowser" name="displayData">
-    <property name="geometry">
-     <rect>
-      <x>880</x>
-      <y>40</y>
-      <width>256</width>
-      <height>192</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="searchBtn">
     <property name="geometry">
      <rect>

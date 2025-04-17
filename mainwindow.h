@@ -19,7 +19,6 @@ public:
     mainwindow(QWidget *parent = nullptr);
     ~mainwindow();
     std::string getTextBox();
-    void appendInformation(std::string data);
     void populateStationComboBox(const Jfile* data);
     void populateParameterComboBox(const Jfile* data);
     void displayChart(const QVector<QPointF> &points, const QString &title);
