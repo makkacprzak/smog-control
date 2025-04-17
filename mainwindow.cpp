@@ -43,11 +43,6 @@ std::string mainwindow::getTextBox(){
     return data.toStdString();
 }
 
-void mainwindow::appendInformation(std::string info){
-    QString data = QString::fromStdString(info);
-    ui -> displayData -> append(data);
-}
-
 void mainwindow::on_searchBtn_clicked()
 {
     string city = mainwindow::getTextBox();
@@ -88,11 +83,9 @@ void mainwindow::populateParameterComboBox(const Jfile* data){
 
 void mainwindow::displayChart(const QVector<QPointF> &points, const QString &title) {
     if (points.isEmpty()) {
-        qDebug() << "Wektor jest pusty!";
+        fprintf(stderr, "Wektor jest pust\n");
     }
-    for (const QPointF &point : points) {
-        qDebug() << "x:" << point.x() << ", y:" << point.y();
-    }
+
     QLineSeries *series = new QLineSeries();
     for (const QPointF &pt : points)
         series->append(pt);

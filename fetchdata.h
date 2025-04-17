@@ -13,6 +13,6 @@ float getSensorValue(int sensorID, std::string paramCode);
 std::string getStationData(int stationID);
 
 // Get station ID from location
-std::string getStationID(std::string city);
+void getStationID(std::string city);
 
 #endif // FETCHDATA_H

@@ -4,13 +4,12 @@
 #include <string>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
-#include <sstream>
 
 using json = nlohmann::json;
 using namespace std;
 
 // Save sensor data to json database
-void save_json_to_file(const string& city, const string& time, const json& sensorData){
+void save_json_to_file(const string& city, const json& sensorData){
     // Create data directory unless exists
     filesystem::create_directory("data");
 
@@ -149,9 +148,8 @@ json getStationData(int stationID) {
 }
 
 
-string getStationID(string city) {
+void getStationID(string city) {
     //Initiate curl
-    ostringstream oss;
     CURL *curl;
     CURLcode result;
     string readBuffer;
@@ -160,7 +158,7 @@ string getStationID(string city) {
     //Handle exception
     if (curl == nullptr) {
         fprintf(stderr, "HTTP request failed\n");
-        return "";
+        return;
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, "https://api.gios.gov.pl/pjp-api/rest/station/findAll"); // Set URL
@@ -170,7 +168,7 @@ string getStationID(string city) {
     // Handle HTTP request exception
     if (result != CURLE_OK) {
         fprintf(stderr, "Error: %s\n", curl_easy_strerror(result));
-        return "";
+        return;
     }
     // Try to parse JSON data
     try {
@@ -182,18 +180,18 @@ string getStationID(string city) {
             if (station.contains("city") && station["city"].contains("name") && station["city"]["name"].is_string() && station["city"]["name"] == city) {
                 if (station.contains("id") && station["id"].is_number()){
                     stationFound = true;
-                    curl_easy_cleanup(curl);
                     newData[station["stationName"].get<string>()] = getStationData(station["id"].get<int>());
-                    save_json_to_file(city, "latest", newData);
+                    save_json_to_file(city, newData);
                 }
 
             }
         }
+        curl_easy_cleanup(curl);
         if (stationFound) {
-            return oss.str();
+            return;
         }
         fprintf(stderr, "Error: Station not found\n"); // Handle station not found
-        return "Error: Station not found\n";
+        return;
         // Handle JSON exceptions
     }catch (const json::parse_error& e) {
         fprintf(stderr, "JSON parse error: %s\n", e.what());
@@ -202,5 +200,4 @@ string getStationID(string city) {
     }
 
     curl_easy_cleanup(curl);
-    return "";
 }

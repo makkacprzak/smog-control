@@ -10,22 +10,21 @@ using namespace std;
 using json = nlohmann::json;
 
 Jfile::Jfile(const string& city) {
+    // Initiate API to .json sequence
     getStationID(city);
 
+    // Read file at correct path
     string filename = "data/" + city + ".json";
     ifstream newFile(filename);
 
+    // If file valid, save to file_
     if(newFile.is_open()){
         newFile >> file_;
     }else{
         fprintf(stderr, "No data on city\n");
     }
+
     populateVectors();
-}
-
-
-bool Jfile::contains(const vector<string> vec, const string& str) const{
-    return find(vec.begin(), vec.end(), str) != vec.end();
 }
 
 void Jfile::populateVectors(){
@@ -40,17 +39,7 @@ void Jfile::populateVectors(){
             }
         }
     }
-    for (const auto& item : stations_) {
-        fprintf(stdout, "%s; ", item.c_str());
-    }
-    fprintf(stdout, "\n");
 
-    for (const auto& item : params_) {
-        fprintf(stdout, "%s; ", item.c_str());
-    }
-    fprintf(stdout, "\n");
-
-    fflush(stdout);
     return;
 }
 
@@ -66,64 +55,57 @@ QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param
     QVector<QPointF> points;
 
     if (!file_.contains(station)) {
-        qDebug() << "Brak danych dla podanej stacji";
+        fprintf(stderr, "Brak danych dla podanej stacji\n");
         return points;
     }
 
     if (!file_[station].contains(param)) {
-        qDebug() << "Brak danych dla podanego parametru";
+        fprintf(stderr, "Brak danych dla podanego parametru\n");
         return points;
     }
 
+    // Select only relevant part of json
     const auto& measurments = file_[station][param];
 
     if (!measurments.is_array()) {
-        qDebug() << "Dane nie są tablicą";
+        fprintf(stderr, "Dane nie są tablicą\n");
         return points;
     }
 
-    qDebug() << "Przetwarzanie danych dla stacji: " << QString::fromStdString(station);
-
+    // Iterate backwards to go from descending to ascending order
     for (auto i = measurments.rbegin(); i != measurments.rend(); ++i) {
         const auto& entry = *i;
         if (!entry.is_object() || entry.empty()) {
             continue;
         }
 
-        const auto& pair = entry.begin();
-        string time = pair.key();
-        qDebug() << "Czas: " << QString::fromStdString(time);
+        const auto& pair = entry.begin(); // Select date-value pair
+        string time = pair.key(); // Single out time
 
+        // If value valid, save to double
         if (!pair.value().is_number()) {
-            qDebug() << "Brak wartości liczbowej dla parametru";
+            fprintf(stderr, "Brak wartości liczbowej dla parametru\n");
             continue;
         }
-
         double y = pair.value().get<double>();
 
-        // Przycięcie daty do formatu "MM-dd HH:mm"
+        // Crop date to "MM-dd HH:mm"
         QString ts = QString::fromStdString(time);
-        QString shortened = ts.mid(5, 11);  // Przycinamy do "MM-dd HH:mm"
-        qDebug() << "Przycięty czas: " << shortened;
+        QString shortened = ts.mid(5, 11);
 
-        // Parsowanie daty
+        // Parse date into QDateTime format
         QDateTime dt = QDateTime::fromString(shortened, "MM-dd HH:mm");
 
+        // If valid, convert to epoch time
         if (!dt.isValid()) {
-            qDebug() << "Błędny format daty: " << shortened;
+            fprintf(stderr, "Incorrect date-time format\n");
             continue;
         }
-
-        // Przechodzimy do timestampu
         qint64 x = dt.toMSecsSinceEpoch();
 
-        qDebug() << "Dodano punkt: (" << x << ", " << y << ")";
-
-        // Dodanie punktu do wektora
+        // Add point to vector
         points.append(QPointF(x, y));
     }
-
-    qDebug() << "Zakończono przetwarzanie. Liczba punktów: " << points.size();
 
     return points;
 }
