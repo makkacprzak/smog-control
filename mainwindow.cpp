@@ -79,11 +79,9 @@ void mainwindow::populateParameterComboBox(const Jfile* data){
     }
 }
 
-
-
 void mainwindow::displayChart(const QVector<QPointF> &points, const QString &title) {
     if (points.isEmpty()) {
-        fprintf(stderr, "Wektor jest pust\n");
+        fprintf(stderr, "Wektor jest pusty\n");
     }
 
     QLineSeries *series = new QLineSeries();

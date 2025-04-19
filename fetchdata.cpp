@@ -78,11 +78,8 @@ json getSensorValue(int sensorID, string paramCode) {
                 json sensorData;
                 for(auto& vals : data["values"]){
                     if(!vals["value"].is_null()){
-                        sensorData[i][vals["date"]] = vals["value"];
+                        sensorData[vals["date"]] = vals["value"];
                         i++;
-                    }
-                    if(i == 48){
-                        return sensorData;
                     }
                 }
                 return sensorData;
