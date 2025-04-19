@@ -17,6 +17,7 @@ public:
     void populateVectors();
     std::vector<std::string> getStations() const;
     std::vector<std::string> getParams() const;
+    nlohmann::json getDataSet(const std::string& station, const std::string& param) const;
     QVector <QPointF> getDataPoints(const std::string& station, const std::string& param) const;
 };
 
