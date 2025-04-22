@@ -1,7 +1,11 @@
-Requirements:
+Dependancies:
 
-CURL package installed on system
+CURL
 
-QT designer
+QT
 
-To run program you need to open repository as a project using QT designer.
+Easiest way to build project:
+
+1. Install curl normally
+
+2. Build using QT designer
