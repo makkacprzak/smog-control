@@ -6,14 +6,20 @@
 #include <QString>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 
 using namespace std;
 
 using json = nlohmann::json;
 
-Jfile::Jfile(const string& city) {
+Jfile::Jfile(const string& city){
     // Initiate API to .json sequence
-    getStationID(city);
+    try{
+        getStationID(city);
+        city_ = QString::fromStdString(city);
+    }catch (const exception& e){
+        throw runtime_error(e.what());
+    }
     // Read file at correct path
     string filename = "data/" + city + ".json";
     ifstream newFile(filename);
@@ -22,7 +28,7 @@ Jfile::Jfile(const string& city) {
     if(newFile.is_open()){
         newFile >> file_;
     }else{
-        fprintf(stderr, "No data on city\n");
+        throw runtime_error("Brak danych o tym mieście");
     }
 
     populateVectors();
@@ -44,12 +50,42 @@ void Jfile::populateVectors(){
     return;
 }
 
+QString Jfile::getCity() const{
+    if(!city_.isEmpty()){
+        return city_;
+    }else{
+        throw runtime_error("Pole 'Miasto' jest puste");
+    }
+}
+
 vector<string> Jfile::getStations() const{
-    return stations_;
+    if(!stations_.empty()){
+        return stations_;
+    }else{
+        throw runtime_error("Brak stacji w mieście");
+    }
 }
 
 vector<string> Jfile::getParams() const{
-    return params_;
+    if(!params_.empty()){
+        return params_;
+    }else{
+        throw runtime_error("Brak sensorów w mieście");
+    }
+}
+
+
+vector<string> Jfile::getStationParams(const QString& station) const{
+    vector<string> params;
+    if(file_.contains(station) && !file_[station].empty()){
+        for(const auto& [param, _] : file_[station].items()){
+            params.push_back(param);
+        }
+    }else{
+        throw runtime_error("Stacja nie istnieje bądź nie posiada sensorów");
+    }
+
+    return params;
 }
 
 // Helper function: convert string to tm
@@ -133,8 +169,7 @@ json Jfile::getDataSet(const string& station, const string& param) const{
         }
     }else if (station != "" && param != ""){ // If specific station requested
         if(!file_[station].contains(param)){ // Check if station has the parameter
-            fprintf(stderr, "Brak danych dla stacji\n");
-            return "";
+            throw runtime_error("Brak danych dla wybranej stacji");
         }
         dataSet = file_[station][param];
     }
@@ -145,17 +180,16 @@ json Jfile::getDataSet(const string& station, const string& param) const{
 QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param) const {
     QVector<QPointF> points;
 
-    // Get data set for parameters
-    const auto& measurments = getDataSet(station, param);
+    try{
+        // Get data set for parameters
+        const auto& measurments = getDataSet(station, param);
 
     if (!measurments.is_object()) {
-        fprintf(stderr, "Dane nie są tablicą\n");
-        return points;
+        throw runtime_error("Błąd struktury bazy danych");
     }
 
     if (measurments.empty()) {
-        fprintf(stderr, "Brak danych dla stacji\n");
-        return points;
+        throw runtime_error("Brak danych dla stacji");
     }
 
     // Iterate over entries
@@ -186,6 +220,9 @@ QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param
 
         // Add point to vector
         points.append(QPointF(x, y));
+    }
+    }catch(const exception& e){
+        throw runtime_error("Błąd w przetwarzaniu danych");
     }
 
     return points;

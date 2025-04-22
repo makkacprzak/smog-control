@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <stdexcept>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
@@ -53,8 +54,7 @@ json getSensorValue(int sensorID, string paramCode) {
 
     //Handle HTTP request exception
     if (curl == nullptr) {
-        fprintf(stderr, "HTTP request failed\n");
-        return "";
+        throw runtime_error("Błąd curl");
     }
 
     string queryURL = "https://api.gios.gov.pl/pjp-api/rest/data/getData/" + to_string(sensorID); // Create custom API URL
@@ -65,8 +65,7 @@ json getSensorValue(int sensorID, string paramCode) {
 
     // Handle curl request exception
     if (result != CURLE_OK) {
-        fprintf(stderr, "Error: %s\n", curl_easy_strerror(result));
-        return "";
+        throw runtime_error(curl_easy_strerror(result));
     }
 
     // Try to parse JSON data
@@ -84,12 +83,12 @@ json getSensorValue(int sensorID, string paramCode) {
                 }
                 return sensorData;
             }
+        }else{
+            throw runtime_error("Wystąpił problem z danymi GIOS");
         }
         // Handle JSON exceptions
     }catch (const json::parse_error& e) {
-        fprintf(stderr, "JSON parse error: %s\n", e.what());
-    }catch (const std::exception& e) {
-        fprintf(stderr, "Error: Unknown exception\n");
+        throw runtime_error(e.what());
     }
 
     curl_easy_cleanup(curl);
@@ -104,10 +103,9 @@ json getStationData(int stationID) {
     string readBuffer;
     curl = curl_easy_init();
 
-    //Handle exception
+    //Handle curl exception
     if (curl == nullptr) {
-        fprintf(stderr, "HTTP request failed\n");
-        return "";
+        throw runtime_error("Błąd curl");
     }
 
     string queryURL = "https://api.gios.gov.pl/pjp-api/rest/station/sensors/" + to_string(stationID); // Create custom API URL
@@ -117,8 +115,7 @@ json getStationData(int stationID) {
     result = curl_easy_perform(curl);
     // Handle HTTP request exception
     if (result != CURLE_OK) {
-        fprintf(stderr, "Error: %s\n", curl_easy_strerror(result));
-        return "";
+        throw runtime_error(curl_easy_strerror(result));
     }
     // Try to parse JSON data
     try {
@@ -135,11 +132,8 @@ json getStationData(int stationID) {
         return stationData;
         // Handle JSON exceptions
     }catch (const json::parse_error& e) {
-        fprintf(stderr, "JSON parse error: %s\n", e.what());
-    }catch (const std::exception& e) {
-        fprintf(stderr, "Error: Unknown exception\n");
+        throw runtime_error(e.what());
     }
-
     curl_easy_cleanup(curl);
     return "";
 }
@@ -154,8 +148,7 @@ void getStationID(string city) {
 
     //Handle exception
     if (curl == nullptr) {
-        fprintf(stderr, "HTTP request failed\n");
-        return;
+        throw runtime_error("Błąd curl");
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, "https://api.gios.gov.pl/pjp-api/rest/station/findAll"); // Set URL
@@ -164,8 +157,7 @@ void getStationID(string city) {
     result = curl_easy_perform(curl);
     // Handle HTTP request exception
     if (result != CURLE_OK) {
-        fprintf(stderr, "Error: %s\n", curl_easy_strerror(result));
-        return;
+        throw runtime_error(curl_easy_strerror(result));
     }
     // Try to parse JSON data
     try {
@@ -187,13 +179,12 @@ void getStationID(string city) {
         if (stationFound) {
             return;
         }
-        fprintf(stderr, "Error: Station not found\n"); // Handle station not found
-        return;
+        throw runtime_error("Brak stacji pomiarowej w tym mieście");
         // Handle JSON exceptions
     }catch (const json::parse_error& e) {
-        fprintf(stderr, "JSON parse error: %s\n", e.what());
+        throw runtime_error(e.what());
     }catch (const std::exception& e) {
-        fprintf(stderr, "Error: Unknown exception\n");
+        throw runtime_error(e.what());
     }
 
     curl_easy_cleanup(curl);

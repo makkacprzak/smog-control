@@ -9,6 +9,7 @@
 #include <QtCharts/QValueAxis>
 #include <QDateTime>
 #include <QComboBox>
+#include <QMessageBox>
 #include <vector>
 
 using namespace std;
@@ -23,11 +24,11 @@ mainwindow::mainwindow(QWidget *parent)
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->resize(ui->chartContainer->size());
 
-    connect(ui->stationComboBox, &QComboBox::currentTextChanged, this, [=]() {
+    connect(ui->stationComboBox, QOverload<int>::of(&QComboBox::activated), this, [=]() {
         checkAndDrawChart();
     });
 
-    connect(ui->parameterComboBox, &QComboBox::currentTextChanged, this, [=]() {
+    connect(ui->parameterComboBox, QOverload<int>::of(&QComboBox::activated), this, [=]() {
         checkAndDrawChart();
     });
 }
@@ -45,33 +46,49 @@ std::string mainwindow::getTextBox(){
 
 void mainwindow::on_searchBtn_clicked()
 {
-    string city = mainwindow::getTextBox();
-    myFile_ = new Jfile(city);
-    populateStationComboBox(myFile_);
-    populateParameterComboBox(myFile_);
+    try{
+        string city = mainwindow::getTextBox();
+        myFile_ = new Jfile(city);
+        populateStationComboBox();
+    }catch(const exception& e){
+        QMessageBox::critical(this, "Błąd", QString::fromStdString(e.what()));
+    }
+
 }
 
-void mainwindow::populateStationComboBox(const Jfile* data){
+void mainwindow::populateStationComboBox(){
     // Clear any previous data
     stationMap.clear();
     ui -> stationComboBox -> clear();
     ui -> stationComboBox -> addItem("Wybierz stację pomiarową");
 
-    vector<string> stations = data -> getStations();
-
-    for(const auto& station : stations){
-        QString name = QString::fromStdString(station);
-        ui -> stationComboBox -> addItem(name);
+    try{
+        for(const auto& station : myFile_ -> getStations()){
+            QString name = QString::fromStdString(station);
+            ui -> stationComboBox -> addItem(name);
+        }
+    }catch(const exception& e){
+        QMessageBox::critical(this, "Błąd", QString::fromStdString(e.what()));
     }
 
     ui -> stationComboBox -> addItem("Średnia wszystkich stacji");
 }
 
-void mainwindow::populateParameterComboBox(const Jfile* data){
+void mainwindow::populateParameterComboBox(const QString& station){
     ui -> parameterComboBox -> clear();
     ui -> parameterComboBox -> addItem("Wybierz parametr powietrza");
+    vector<string> params;
 
-    vector<string> params = data -> getParams();
+    try{
+        // Check what parameter options to display
+        if(station == "Średnia wszystkich stacji"){ // If average, display all available
+            params = myFile_->getParams();
+        }else{ // If single station, display only station's options
+            params = myFile_->getStationParams(station);
+        }
+    }catch(const exception& e){
+        QMessageBox::critical(this, "Błąd", QString::fromStdString(e.what()));
+    }
 
     for(const auto& param : params){
         QString name = QString::fromStdString(param);
@@ -81,7 +98,8 @@ void mainwindow::populateParameterComboBox(const Jfile* data){
 
 void mainwindow::displayChart(const QVector<QPointF> &points, const QString &title) {
     if (points.isEmpty()) {
-        fprintf(stderr, "Wektor jest pusty\n");
+        QMessageBox::critical(this, "Błąd", "Brak pomiarów dla podanych parametrów");
+        return;
     }
 
     QLineSeries *series = new QLineSeries();
@@ -113,10 +131,24 @@ void mainwindow::checkAndDrawChart() {
 
     // Sprawdzamy czy użytkownik nie zostawił domyślnych opcji
     if (selectedStation != "Wybierz stację pomiarową" &&
-        selectedStation != "" &&
-        selectedParam != "Wybierz parametr powietrza" &&
-        selectedParam != "")
-    {
-        displayChart(myFile_->getDataPoints(selectedStation.toStdString(), selectedParam.toStdString()), "test");
+        selectedStation != ""){
+        //if(selectedStation != ""){
+            populateParameterComboBox(selectedStation);
+        //}
+        if(selectedParam != "Wybierz parametr powietrza" &&
+            selectedParam != ""){
+            try{
+                QString title;
+                if(selectedStation == "Średnia wszystkich stacji"){
+                    title = "Uśrednione pomiary "+ selectedParam + " w mieście " + myFile_->getCity();
+                }else{
+                    title = "Pomiary " + selectedParam + " ze stacji pomiarowej " + selectedStation;
+                }
+                displayChart(myFile_->getDataPoints(selectedStation.toStdString(), selectedParam.toStdString()), title);
+            }catch(const exception& e){
+                QMessageBox::critical(this, "Błąd", QString::fromStdString(e.what()));
+            }
+
+        }
     }
 }

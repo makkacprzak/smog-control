@@ -18,31 +18,37 @@
     <property name="geometry">
      <rect>
       <x>930</x>
-      <y>300</y>
+      <y>90</y>
       <width>141</width>
       <height>41</height>
      </rect>
+    </property>
+    <property name="documentTitle">
+     <string/>
+    </property>
+    <property name="placeholderText">
+     <string>Wpisz nazwę miasta</string>
     </property>
    </widget>
    <widget class="QPushButton" name="searchBtn">
     <property name="geometry">
      <rect>
       <x>950</x>
-      <y>480</y>
+      <y>190</y>
       <width>101</width>
       <height>41</height>
      </rect>
     </property>
     <property name="text">
-     <string>Search</string>
+     <string>Szukaj</string>
     </property>
    </widget>
    <widget class="QComboBox" name="stationComboBox">
     <property name="geometry">
      <rect>
       <x>880</x>
-      <y>420</y>
-      <width>241</width>
+      <y>320</y>
+      <width>251</width>
       <height>26</height>
      </rect>
     </property>
@@ -51,7 +57,7 @@
     <property name="geometry">
      <rect>
       <x>880</x>
-      <y>360</y>
+      <y>370</y>
       <width>251</width>
       <height>26</height>
      </rect>
