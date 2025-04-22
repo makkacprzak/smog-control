@@ -9,34 +9,54 @@
 using json = nlohmann::json;
 using namespace std;
 
-// Save sensor data to json database
-void save_json_to_file(const string& city, const json& sensorData){
-    // Create data directory unless exists
-    filesystem::create_directory("data");
+void save_json_to_file(const string& city, const json& sensorData) {
+    namespace fs = std::filesystem;
 
-    // Format city file
+    // Create "data" directory if it doesn't exist
+    fs::create_directory("data");
+
+    // Prepare filename
     string filename = "data/" + city + ".json";
-    ifstream fileIn(filename);
 
-    json cityData;
+    json existingData;
 
-    // If city's file exists, load data
-    if (fileIn.is_open()){
-        fileIn >> cityData; // Load data into variable
-        fileIn.close();
+    // Load existing data if file exists
+    if (ifstream fileIn{filename}; fileIn.is_open()) {
+        fileIn >> existingData;
     }
 
-    // Add new data to variable
-    cityData = sensorData;
+    // Go through sensorData and merge with existingData
+    for (auto& [stationName, substances] : sensorData.items()) {
+        for (auto& [substance, timestamps] : substances.items()) {
+            for (auto& [timestamp, value] : timestamps.items()) {
 
-    ofstream fileOut(filename);
+                // If data point doesn't exist - add it
+                if (!existingData[stationName][substance].contains(timestamp)) {
+                    existingData[stationName][substance][timestamp] = value;
+                }
+            }
+        }
+    }
 
-    // Save updated data to city's file
-    if(fileOut.is_open()){
-        fileOut << setw(4) << cityData << endl;
-        fileOut.close();
+    // Sort data according to date
+    for (auto& [stationName, substances] : existingData.items()) {
+        for (auto& [substance, timestamps] : substances.items()) {
+            // Sort timestamps
+            std::map<string, json> sortedTimestamps;
+            for (auto& [timestamp, value] : timestamps.items()) {
+                sortedTimestamps[timestamp] = value;
+            }
+            // Overwrite data
+            existingData[stationName][substance] = sortedTimestamps;
+        }
+    }
+
+    // Save to file
+    if (ofstream fileOut{filename}; fileOut.is_open()) {
+        fileOut << std::setw(4) << existingData << std::endl;
     }
 }
+
 
 // Write curl data to string buffer
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream) {
@@ -56,7 +76,7 @@ json getSensorValue(int sensorID, string paramCode) {
     if (curl == nullptr) {
         throw runtime_error("Błąd curl");
     }
-
+    cout << sensorID << endl;
     string queryURL = "https://api.gios.gov.pl/pjp-api/rest/data/getData/" + to_string(sensorID); // Create custom API URL
     curl_easy_setopt(curl, CURLOPT_URL, queryURL.c_str()); // Set URL
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data); // Set write function

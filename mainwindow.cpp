@@ -50,6 +50,9 @@ void mainwindow::on_searchBtn_clicked()
         string city = mainwindow::getTextBox();
         myFile_ = new Jfile(city);
         populateStationComboBox();
+        if(myFile_ -> HTTPError_){
+            QMessageBox::warning(this, "Błąd", QString::fromStdString("Wystąpił błąd przy zapytaniu HTTP. Wykorzystamy dane przechowywane lokalnie.\n" + myFile_ -> errorMessage_));
+        }
     }catch(const exception& e){
         QMessageBox::critical(this, "Błąd", QString::fromStdString(e.what()));
     }
