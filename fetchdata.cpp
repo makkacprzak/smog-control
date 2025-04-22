@@ -76,7 +76,6 @@ json getSensorValue(int sensorID, string paramCode) {
     if (curl == nullptr) {
         throw runtime_error("Błąd curl");
     }
-    cout << sensorID << endl;
     string queryURL = "https://api.gios.gov.pl/pjp-api/rest/data/getData/" + to_string(sensorID); // Create custom API URL
     curl_easy_setopt(curl, CURLOPT_URL, queryURL.c_str()); // Set URL
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data); // Set write function
