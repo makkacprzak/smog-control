@@ -14,6 +14,9 @@ private:
     std::vector<std::string> stations_;
     QString city_;
 public:
+    bool HTTPError_;
+    std::string errorMessage_;
+    // These args are here to simplify transfering errors upstream
     Jfile(const std::string& city);
     void populateVectors();
     QString getCity() const;

@@ -16,18 +16,22 @@ Jfile::Jfile(const string& city){
     // Initiate API to .json sequence
     try{
         getStationID(city);
-        city_ = QString::fromStdString(city);
     }catch (const exception& e){
-        throw runtime_error(e.what());
+        errorMessage_ = e.what();
+        HTTPError_ = true;
     }
+    city_ = QString::fromStdString(city);
     // Read file at correct path
     string filename = "data/" + city + ".json";
-    ifstream newFile(filename);
+    ifstream myFile(filename);
 
     // If file valid, save to file_
-    if(newFile.is_open()){
-        newFile >> file_;
+    if(myFile.is_open() ){
+        myFile >> file_;
     }else{
+        if(HTTPError_){
+            throw runtime_error("Wystąpił błąd przy zapytaniu HTTP. Brak danych zapisanych lokalnie.\n" + errorMessage_);
+        }
         throw runtime_error("Brak danych o tym mieście");
     }
 
