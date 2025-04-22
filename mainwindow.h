@@ -19,8 +19,8 @@ public:
     mainwindow(QWidget *parent = nullptr);
     ~mainwindow();
     std::string getTextBox();
-    void populateStationComboBox(const Jfile* data);
-    void populateParameterComboBox(const Jfile* data);
+    void populateStationComboBox();
+    void populateParameterComboBox(const QString& station);
     void displayChart(const QVector<QPointF> &points, const QString &title);
     void checkAndDrawChart();
 public slots:
