@@ -1,3 +1,5 @@
+#include "fetchdata.h"
+#include "translate.h"
 #include <fstream>
 #include <filesystem>
 #include <iostream>
@@ -6,9 +8,22 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
+#define _(phrase, lang) string(Translate((phrase), (lang)))
+
 using json = nlohmann::json;
 using namespace std;
 
+///@defgroup fetchdata FetchData Helper Functions
+/// A custom library tasked with fetching data from GIOS API, and then saving it inside a local .json database
+
+/**
+ * @brief Helper function: Updates local json files with new data
+ * @details If file no in path /data/[city].json, create it and save sensorData to it
+ * else: function updates it with newer data
+ * @param city Name of city. Necessary to create a [city].json file
+ * @param sensorData Formatted json data fetched from GIOS API
+ * @ingroup fetchdata
+ */
 void save_json_to_file(const string& city, const json& sensorData) {
     namespace fs = std::filesystem;
 
@@ -37,7 +52,6 @@ void save_json_to_file(const string& city, const json& sensorData) {
             }
         }
     }
-
     // Sort data according to date
     for (auto& [stationName, substances] : existingData.items()) {
         for (auto& [substance, timestamps] : substances.items()) {
@@ -57,15 +71,17 @@ void save_json_to_file(const string& city, const json& sensorData) {
     }
 }
 
-
-// Write curl data to string buffer
+/**
+ * @brief Helper function: write curl data to string buffer
+ * @return write_data
+ * @ingroup fetchdata
+ */
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream) {
     ((string*)stream)->append((char*)ptr, size * nmemb);
     return size * nmemb;
 }
 
-// Return pollution value from sensorID
-json getSensorValue(int sensorID, string paramCode) {
+json FetchData::getSensorValue(const int& sensorID, const string& paramCode) const{
     //Initiate curl
     CURL *curl;
     CURLcode result;
@@ -74,7 +90,7 @@ json getSensorValue(int sensorID, string paramCode) {
 
     //Handle HTTP request exception
     if (curl == nullptr) {
-        throw runtime_error("Błąd curl");
+        throw runtime_error(_("Błąd curl", lang_));
     }
     string queryURL = "https://api.gios.gov.pl/pjp-api/rest/data/getData/" + to_string(sensorID); // Create custom API URL
     curl_easy_setopt(curl, CURLOPT_URL, queryURL.c_str()); // Set URL
@@ -84,7 +100,7 @@ json getSensorValue(int sensorID, string paramCode) {
 
     // Handle curl request exception
     if (result != CURLE_OK) {
-        throw runtime_error(curl_easy_strerror(result));
+        throw runtime_error(_("Dane sensora: ", lang_) + string(curl_easy_strerror(result)));
     }
 
     // Try to parse JSON data
@@ -103,7 +119,7 @@ json getSensorValue(int sensorID, string paramCode) {
                 return sensorData;
             }
         }else{
-            throw runtime_error("Wystąpił problem z danymi GIOS");
+            throw runtime_error(_("Wystąpił problem z danymi GIOS", lang_));
         }
         // Handle JSON exceptions
     }catch (const json::parse_error& e) {
@@ -114,8 +130,7 @@ json getSensorValue(int sensorID, string paramCode) {
     return "";
 }
 
-
-json getStationData(int stationID) {
+json FetchData::getStationData(int stationID) const{
     //Initiate curl
     CURL *curl;
     CURLcode result;
@@ -124,7 +139,7 @@ json getStationData(int stationID) {
 
     //Handle curl exception
     if (curl == nullptr) {
-        throw runtime_error("Błąd curl");
+        throw runtime_error(_("Błąd curl", lang_));
     }
 
     string queryURL = "https://api.gios.gov.pl/pjp-api/rest/station/sensors/" + to_string(stationID); // Create custom API URL
@@ -134,7 +149,7 @@ json getStationData(int stationID) {
     result = curl_easy_perform(curl);
     // Handle HTTP request exception
     if (result != CURLE_OK) {
-        throw runtime_error(curl_easy_strerror(result));
+        throw runtime_error(_("Dane stacji: ", lang_) + string((curl_easy_strerror(result))));
     }
     // Try to parse JSON data
     try {
@@ -157,26 +172,24 @@ json getStationData(int stationID) {
     return "";
 }
 
-
-void getStationID(string city) {
+FetchData::FetchData(const string& city, const string& lang) {
     //Initiate curl
     CURL *curl;
     CURLcode result;
     string readBuffer;
     curl = curl_easy_init();
-
+    lang_ = lang;
     //Handle exception
     if (curl == nullptr) {
-        throw runtime_error("Błąd curl");
+        throw runtime_error(_("Błąd curl", lang_));
     }
-
     curl_easy_setopt(curl, CURLOPT_URL, "https://api.gios.gov.pl/pjp-api/rest/station/findAll"); // Set URL
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data); // Set write function
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
     result = curl_easy_perform(curl);
     // Handle HTTP request exception
     if (result != CURLE_OK) {
-        throw runtime_error(curl_easy_strerror(result));
+        throw runtime_error(_("Wszystkie Stacje: ", lang_) + string(curl_easy_strerror(result)));
     }
     // Try to parse JSON data
     try {
@@ -198,7 +211,7 @@ void getStationID(string city) {
         if (stationFound) {
             return;
         }
-        throw runtime_error("Brak stacji pomiarowej w tym mieście");
+        throw runtime_error(_("Brak stacji pomiarowej w tym mieście", lang_));
         // Handle JSON exceptions
     }catch (const json::parse_error& e) {
         throw runtime_error(e.what());
