@@ -1,0 +1,116 @@
+{
+	"Wpisz nazwę miasta":{
+		"en": "Enter city name"
+	},
+	"Wybierz stację pomiarową":{
+		"en": "Select station"
+	},
+	"Wybierz parametr powietrza":{
+		"en": "Select air parameter"
+	},
+	"Średnia wszystkich stacji":{
+		"en": "Average from all stations"
+	},
+	"ozon":{
+		"en": "ozone"
+	},
+	"benzen":{
+		"en": "benzene"
+	},
+	"dwutlenek azotu":{
+		"en": "nitrogen dioxide"
+	},
+	"pył zawieszony PM10":{
+		"en": "PM10 particulate matter"
+	},
+	"pył zawieszony PM2.5":{
+		"en": "PM2.5 particulate matter"
+	},
+	"tlenek węgla":{
+		"en": "carbon oxide"
+	},
+	"dwutlenek siarki":{
+		"en": "sulfur dioxide"
+	},
+	"Błąd":{
+		"en": "Error"
+	},
+	"Uwaga":{
+		"en": "Warning"
+	},
+	"Brak pomiarów dla podanych parametrów":{
+		"en": "No data for selected parameters"
+	},
+	"Czas":{
+		"en": "Time"
+	},
+	"Wartość":{
+		"en": "Value"
+	},
+	"Uśrednione pomiary ":{
+		"en": "Average value of "
+	},
+	" w mieście ":{
+		"en": " in "
+	},
+	" w okolicy ":{
+		"en": " around "
+	},
+	"Wystąpił błąd przy zapytaniu HTTP. Wykorzystamy dane przechowywane lokalnie.\n":{
+		"en": "An error with HTTP request occured. Using locally stored data.\n"
+	},
+	"Błąd curl":{
+		"en": "Curl error"
+	},
+	"Brak stacji pomiarowej w tym mieście":{
+		"en": "No stations in this city"
+	},
+	"Wystąpił problem z danymi GIOS":{
+		"en": "An error with GIOS data has occured"
+	},
+	"Wystąpił błąd przy zapytaniu HTTP. Brak danych zapisanych lokalnie.\n":{
+		"en": "An error with HTTP request occured. No locally stored data present.\n"
+	},
+	"Brak danych o tym mieście":{
+		"en": "No data on selected city"
+	},
+	"Pole 'Miasto' jest puste":{
+		"en": "'City' field is empty"
+	},
+	"Brak stacji w mieście":{
+		"en": "No stations in city"
+	},
+	"Brak sensorów w mieście":{
+		"en": "No sensors in city"
+	},
+	"Stacja nie istnieje bądź nie posiada sensorów":{
+		"en": "Station doesn't exist, or has no sensors"
+	},
+	"Brak danych dla wybranej stacji":{
+		"en": "No data for selected station"
+	},
+	"Błąd struktury bazy danych":{
+		"en": "Database stucture error"
+	},
+	"Brak danych dla stacji":{
+		"en": "No data for station"
+	},
+	"Wszystkie Stacje: ":{
+		"en": "All stations: "
+	},
+	"Dane stacji: ":{
+		"en": "Station data: "
+	},
+	"Dane sensora: ":{
+		"en": "Sensor Data: "
+	},
+	"Język":{
+		"en": "Language"
+	},
+	"Wpisz nazwę miasta":{
+		"en": "Enter city name"
+	},
+	"Szukaj":{
+		"en": "Search"
+	}
+}
