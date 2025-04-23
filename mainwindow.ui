@@ -17,8 +17,8 @@
    <widget class="QTextEdit" name="cityInput">
     <property name="geometry">
      <rect>
-      <x>930</x>
-      <y>90</y>
+      <x>920</x>
+      <y>50</y>
       <width>141</width>
       <height>41</height>
      </rect>
@@ -33,8 +33,8 @@
    <widget class="QPushButton" name="searchBtn">
     <property name="geometry">
      <rect>
-      <x>950</x>
-      <y>190</y>
+      <x>940</x>
+      <y>130</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -46,8 +46,8 @@
    <widget class="QComboBox" name="stationComboBox">
     <property name="geometry">
      <rect>
-      <x>880</x>
-      <y>320</y>
+      <x>860</x>
+      <y>220</y>
       <width>251</width>
       <height>26</height>
      </rect>
@@ -56,8 +56,8 @@
    <widget class="QComboBox" name="parameterComboBox">
     <property name="geometry">
      <rect>
-      <x>880</x>
-      <y>370</y>
+      <x>860</x>
+      <y>260</y>
       <width>251</width>
       <height>26</height>
      </rect>
@@ -71,6 +71,19 @@
       <width>761</width>
       <height>481</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="langSelect">
+    <property name="geometry">
+     <rect>
+      <x>1060</x>
+      <y>580</y>
+      <width>111</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string>Język</string>
     </property>
    </widget>
   </widget>
