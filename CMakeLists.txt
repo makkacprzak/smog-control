@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(smog-control VERSION 0.1 LANGUAGES CXX)
+project(smog-control VERSION 0.16 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -16,6 +16,7 @@ find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
+# Copy dictionary file to program file
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/dictionary.json
   ${CMAKE_CURRENT_BINARY_DIR}/dictionary.json
