@@ -124,19 +124,7 @@ std::string convertTimeTToString(time_t timestamp) {
     return formatTimestamp(*time_info);
 }
 
-/**
- * @brief Single out only relevant data from .json file
- * @details Function checks whether the user has requested data from a single station, or the average of all stations in a given city.\n
- * If average is selected, then function checks every station that tracks the selected air parameter, averages all the measurments, and returns them in a single neat json object.\n
- * The function is created in such a way, that even if some stations have holes in their data, e.g. a few hours of downtime, or a delay in uploading the latest measurments to the API,
- * it will still use every single measurment that has been conducted in the city.
- * @param Exact name of station requested by user, or string representing average values have been requested
- * @param Exact name of air parameter requested by user
- * @param Reference to json file being processed
- * @return Json data that contains only a single object of {date string, value double number} pair
- * @ingroup JfileHelper
- */
-json getDataSet(const string& station, const string& param, const json& file){
+json Jfile::getDataSet(const string& station, const string& param, const json& file, const string& time) const{
     json dataSet;
 
     // Check if user wants average, or a certain station
@@ -171,7 +159,16 @@ json getDataSet(const string& station, const string& param, const json& file){
         tm endTm = parseTimestamp(timeRange[1]);
 
         time_t startTime = mktime(&startTm);
-        time_t endTime = mktime(&endTm);
+        time_t endTime;
+        if(time == "24h"){
+            endTime = startTime + (24*60*60);
+        }else if(time == "48h"){
+            endTime = startTime + (48*60*60);
+        }else if(time == "Max"){
+            endTime = mktime(&endTm);
+        }else{
+            throw runtime_error(_("Niepoprawny wybrany czas", lang_));
+        }
 
         for (time_t t = startTime; t <= endTime; t += 3600) { //Iterate over entire time range with 1h increment
             vector<double> values;
@@ -197,18 +194,43 @@ json getDataSet(const string& station, const string& param, const json& file){
         if(!file[station].contains(param)){ // Check if station has the parameter
             throw runtime_error("Brak danych dla wybranej stacji");
         }
-        dataSet = file[station][param];
+        int limit; // How many measurments to include in dataset
+        if(time == "24h"){
+            limit = 24;
+        }else if(time == "48h"){
+            limit = 48;
+        }else if(time == "Max"){
+            limit = file[station][param].size();
+        }else{
+            throw runtime_error(_("Niepoprawny wybrany czas", lang_));
+        }
+
+        // Sprawdzamy, czy file zawiera odpowiednią strukturę
+        if (file.contains(station) && file[station].contains(param) && file[station][param].is_object()) {
+            // Pobieramy obiekt "param", który jest obiektem
+            auto param_object = file[station][param];
+
+            int count = 0;
+            for (auto& el : param_object.items()) {
+                if (count <= limit) {
+                    dataSet[el.key()] = el.value();  // Dodajemy element do wyniku
+                    ++count;
+                } else {
+                    return dataSet;
+                }
+            }
+        }
     }
 
     return dataSet;
 }
 
-QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param) const {
+QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param, const string& time) const {
     QVector<QPointF> points;
 
     try{
         // Get data set for parameters
-        const auto& measurments = getDataSet(station, param, file_);
+        const auto& measurments = getDataSet(station, param, file_, time);
 
         if (!measurments.is_object()) {
             throw runtime_error(_("Błąd struktury bazy danych", lang_));
@@ -248,7 +270,7 @@ QVector<QPointF> Jfile::getDataPoints(const string& station, const string& param
             points.append(QPointF(x, y));
         }
     }catch(const exception& e){
-        throw runtime_error(_("Błąd w przetwarzaniu danych", lang_));
+        throw runtime_error(_("Błąd w przetwarzaniu danych", lang_) + ":\n" + e.what());
     }
 
     return points;

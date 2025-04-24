@@ -66,10 +66,10 @@
    <widget class="QWidget" name="chartContainer" native="true">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>40</y>
-      <width>761</width>
-      <height>481</height>
+      <x>60</x>
+      <y>30</y>
+      <width>711</width>
+      <height>451</height>
      </rect>
     </property>
    </widget>
@@ -84,6 +84,85 @@
     </property>
     <property name="placeholderText">
      <string>Język</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkLineGraph">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>510</y>
+      <width>121</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Wykres Liniowy</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBarGraph">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>510</y>
+      <width>131</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Wykres Słupkowy</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="timeSelect">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>510</y>
+      <width>51</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="frame">
+     <bool>true</bool>
+    </property>
+    <item>
+     <property name="text">
+      <string>24h</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>48h</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Max</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="infoLabel">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>540</y>
+      <width>561</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LayoutDirection::LeftToRight</enum>
+    </property>
+    <property name="text">
+     <string>Zmiany zostaną zaaplikowane dopiero po wybraniu nowego parametru</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>

@@ -49,14 +49,28 @@ public:
     /// @return A vector of air parameters tracked by station
     std::vector<std::string> getStationParams(const QString& station) const;
     /**
+     * @brief Single out only relevant data from .json file
+     * @details Function checks whether the user has requested data from a single station, or the average of all stations in a given city.\n
+     * If average is selected, then function checks every station that tracks the selected air parameter, averages all the measurments, and returns them in a single neat json object.\n
+     * The function is created in such a way, that even if some stations have holes in their data, e.g. a few hours of downtime, or a delay in uploading the latest measurments to the API,
+     * it will still use every single measurment that has been conducted in the city.
+     * @param station Exact name of station requested by user, or string representing average values have been requested
+     * @param param Exact name of air parameter requested by user
+     * @param file Reference to json file being processed
+     * @param time Time span selected by user
+     * @return Json data that contains only a single object of {date string, value double number} pair
+    */
+    nlohmann::json getDataSet(const std::string& station, const std::string& param, const nlohmann::json& file, const std::string& time) const;
+    /**
      * @brief Get data displayable on QChartView for specific station-param pair
      * @details First separates only relevant parts of file_ attribute\n
      * Then parses this data into data a format that is easily interpreted by the QChartView UI element
      * @param station Exact name of station requested by user, or string that represents the average of all measurments in city
      * @param param Exact name of air parameter requested by user
+     * @param time Selects the timespan to show user
      * @return A QVector of QPointFs, which are {date in qint64 ms since epoch format, value in double format} pairs sorted in ascending order
      */
-    QVector <QPointF> getDataPoints(const std::string& station, const std::string& param) const;
+    QVector <QPointF> getDataPoints(const std::string& station, const std::string& param, const std::string& time) const;
 };
 
 #endif // JFILE_H

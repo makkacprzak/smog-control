@@ -12,8 +12,12 @@
 #include <QComboBox>
 #include <QMessageBox>
 #include <vector>
+#include <QBarSet>
+#include <QBarSeries>
+#include <QBarCategoryAxis>
 
 #define _(phrase, lang) string(Translate((phrase), (lang)))
+/// @brief Macro for converting std::strings to QStrings, since the method is crazy long
 #define qstr(phrase) QString::fromStdString(phrase)
 
 using namespace std;
@@ -34,6 +38,22 @@ mainwindow::mainwindow(QWidget *parent)
 
     connect(ui->parameterComboBox, QOverload<int>::of(&QComboBox::activated), this, [=]() {
         checkAndDrawChart();
+    });
+
+    connect(ui->checkLineGraph, &QCheckBox::toggled, this ,[this](bool checked){
+        if(checked){
+            ui->checkBarGraph->setChecked(false);
+        }else{
+            ui->checkBarGraph->setChecked(true);
+        }
+    });
+
+    connect(ui->checkBarGraph, &QCheckBox::toggled, this, [this](bool checked){
+        if(checked){
+            ui->checkLineGraph->setChecked(false);
+        }else{
+            ui->checkLineGraph->setChecked(true);
+        }
     });
 
     lang_ = "pl";
@@ -67,6 +87,9 @@ void mainwindow::changeLang(){
     ui ->stationComboBox->clear();
     ui->parameterComboBox->clear();
     ui->searchBtn->setText(qstr(_("Szukaj", lang_)));
+    ui->infoLabel->setText(qstr(_("Zmiany zostaną zaaplikowane dopiero po wybraniu nowego parametru", lang_)));
+    ui->checkLineGraph->setText(qstr(_("Wykres Liniowy", lang_)));
+    ui->checkBarGraph->setText(qstr(_("Wykres Słupkowy", lang_)));
     populateLangSelect(lang_);
 }
 
@@ -124,40 +147,109 @@ void mainwindow::populateParameterComboBox(const QString& station){
     }catch(const exception& e){
         QMessageBox::critical(this, "Błąd", qstr(e.what()));
     }
-
     for(const auto& param : params){
         QString name = qstr(param);
         ui -> parameterComboBox -> addItem(qstr(_(name.toStdString(), lang_)), QVariant(name));
     }
 }
 
-void mainwindow::displayChart(const QVector<QPointF> &points, const QString &title) {
+void mainwindow::displayChart(const QVector<QPointF>& points, const QString& station, const QString& param) {
+    // CRUCIAL!!! Because chartView -> chart() uses a parent-child structure,
+    // clearing memory reserved for a QChart object also clears any QSeries or QSet object used in it.
+    // Because of some QCharts tomfoolery, since QT6 QChartView -> charts() cannot be nullptr
+    // I have sort of solved that by adding if(oldChart) delete oldChart; after each chartView->setChart(chart); assignment.
+    // In theory this should be memory safe. However as we know, this is C++.
+    QChart *oldChart = chartView->chart();
+
     if (points.isEmpty()) {
         QMessageBox::critical(this, qstr(_("Błąd", lang_)), qstr(_("Brak pomiarów dla podanych parametrów", lang_)));
         return;
     }
 
-    QLineSeries *series = new QLineSeries();
-    for (const QPointF &pt : points)
-        series->append(pt);
+    if(ui->checkLineGraph->isChecked()){
+        QLineSeries *series = new QLineSeries();
+        for (const QPointF &pt : points)
+            series->append(pt);
+        series -> setName(param);
+        QChart *chart = new QChart();
+        chart->addSeries(series);
+        QString title;
+        if(station == "Średnia wszystkich stacji"){
+            title = qstr(_("Uśrednione pomiary ", lang_)) + qstr(_(station.toStdString(), lang_)) + qstr(_(" w mieście ", lang_)) + myFile_->getCity();
+        }else{
+            title = qstr(_(param.toStdString(), lang_)) + qstr(_(" w okolicy ", lang_)) + station;
+        }
+        chart->setTitle(title);
 
-    QChart *chart = new QChart();
-    chart->addSeries(series);
-    chart->setTitle(title);
+        QDateTimeAxis *axisX = new QDateTimeAxis;
+        axisX->setFormat("dd-MM HH:mm");
+        axisX->setTitleText(qstr(_("Czas", lang_)));
 
-    QDateTimeAxis *axisX = new QDateTimeAxis;
-    axisX->setFormat("dd-MM HH:mm");
-    axisX->setTitleText(qstr(_("Czas", lang_)));
+        QValueAxis *axisY = new QValueAxis;
+        axisY->setTitleText(qstr(_("Wartość", lang_)));
 
-    QValueAxis *axisY = new QValueAxis;
-    axisY->setTitleText(qstr(_("Wartość", lang_)));
+        chart->addAxis(axisX, Qt::AlignBottom);
+        chart->addAxis(axisY, Qt::AlignLeft);
+        series->attachAxis(axisX);
+        series->attachAxis(axisY);
+        chart->setAnimationOptions(QChart::SeriesAnimations);
+        chart->setAnimationDuration(3000);
 
-    chart->addAxis(axisX, Qt::AlignBottom);
-    chart->addAxis(axisY, Qt::AlignLeft);
-    series->attachAxis(axisX);
-    series->attachAxis(axisY);
+        chartView->setChart(chart);
+        if(oldChart) delete oldChart;
+        return;
+    }else if(ui->checkBarGraph->isChecked()){
+        QPointF minPoint = points[0];
+        QPointF maxPoint = points[0];
+        // Find extremes
+        for (const QPointF &p : points) {
+            if (p.y() < minPoint.y()) minPoint = p;
+            if (p.y() > maxPoint.y()) maxPoint = p;
+        }
+        // Convert extremes' time to QString
+        QString minLabel = QDateTime::fromMSecsSinceEpoch(minPoint.x()).toString("dd.MM hh:mm");
+        QString maxLabel = QDateTime::fromMSecsSinceEpoch(maxPoint.x()).toString("dd.MM hh:mm");
+        // Create a set for series
+        QBarSet *set = new QBarSet("Min/Max");
+        *set << minPoint.y() << maxPoint.y();
+        // Create a series from set
+        QBarSeries *series =  new QBarSeries();
+        series ->append(set);
+        // Create a chart from series
+        QChart *chart = new QChart();
+        chart->addSeries(series);
 
-    chartView->setChart(chart);
+        QString title;
+        if(station == "Średnia wszystkich stacji"){
+            title = qstr(_("Min/Max wartości ", lang_)) + qstr(_(param.toStdString(), lang_)) + qstr(_(" w mieście ", lang_)) + myFile_->getCity();
+        }else{
+            title = qstr(_("Min/Max wartości ", lang_)) + qstr(_(param.toStdString(), lang_)) + qstr(_(" w okolicy ", lang_)) + station;
+        }
+        chart->setTitle(title);
+
+        chart->setAnimationOptions(QChart::SeriesAnimations);
+        chart->setAnimationDuration(3000);
+        // Create list of labels
+        QStringList categories;
+        categories << minLabel << maxLabel;
+        // X axis
+        QBarCategoryAxis *axisX = new QBarCategoryAxis();
+        axisX -> append(categories);
+        chart -> addAxis(axisX, Qt::AlignBottom);
+        // Y axis
+        QValueAxis *axisY = new QValueAxis();
+        axisY->setRange(0, maxPoint.y() * 1.1);
+        chart -> addAxis(axisY, Qt::AlignLeft);
+        series -> attachAxis(axisY);
+
+        chartView->setRenderHint(QPainter::Antialiasing);
+        chartView->setChart(chart);
+        if(oldChart) delete oldChart;
+        return;
+    }else{
+        QMessageBox::critical(this, qstr(_("Błąd", lang_)), qstr(_("Nie wybrano opcji grafu",lang_)));
+        return;
+    }
 }
 
 void mainwindow::checkAndDrawChart() {
@@ -173,13 +265,8 @@ void mainwindow::checkAndDrawChart() {
         if(selectedParam != "Wybierz parametr powietrza" &&
             selectedParam != ""){
             try{
-                QString title;
-                if(selectedStation == "Średnia wszystkich stacji"){
-                    title = qstr(_("Uśrednione pomiary ", lang_)) + qstr(_(selectedParam.toStdString(), lang_)) + qstr(_(" w mieście ", lang_)) + myFile_->getCity();
-                }else{
-                    title = qstr(_(selectedParam.toStdString(), lang_)) + qstr(_(" w okolicy ", lang_)) + selectedStation;
-                }
-                displayChart(myFile_->getDataPoints(selectedStation.toStdString(), selectedParam.toStdString()), title);
+                const string selectedTime = ui->timeSelect->currentText().toStdString();
+                displayChart(myFile_->getDataPoints(selectedStation.toStdString(), selectedParam.toStdString(), selectedTime), selectedStation, selectedParam);
             }catch(const exception& e){
                 QMessageBox::critical(this, qstr(_("Błąd", lang_)), qstr(e.what()));
             }
