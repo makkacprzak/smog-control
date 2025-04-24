@@ -102,7 +102,7 @@ std::string mainwindow::getTextBox() const{
 void mainwindow::on_searchBtn_clicked()
 {
     try{
-        delete myFile_;
+        if(myFile_) delete myFile_;
         myFile_ = nullptr;
         string city = mainwindow::getTextBox();
         myFile_ = new Jfile(city, lang_);
@@ -111,6 +111,7 @@ void mainwindow::on_searchBtn_clicked()
             QMessageBox::warning(this, qstr(_("Uwaga", lang_)), qstr(_("Wystąpił błąd przy zapytaniu HTTP. Wykorzystamy dane przechowywane lokalnie.\n", lang_)) + qstr(myFile_ -> errorMessage_));
         }
     }catch(const exception& e){
+        changeLang();
         QMessageBox::critical(this, qstr(_("Błąd", lang_)), qstr(e.what()));
     }
 
