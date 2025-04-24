@@ -105,7 +105,7 @@
    <widget class="QCheckBox" name="checkBarGraph">
     <property name="geometry">
      <rect>
-      <x>350</x>
+      <x>360</x>
       <y>510</y>
       <width>131</width>
       <height>24</height>
@@ -120,7 +120,7 @@
      <rect>
       <x>580</x>
       <y>510</y>
-      <width>51</width>
+      <width>81</width>
       <height>26</height>
      </rect>
     </property>
@@ -172,7 +172,7 @@
      <x>0</x>
      <y>0</y>
      <width>1186</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>
