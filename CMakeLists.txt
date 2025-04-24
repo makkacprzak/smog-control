@@ -17,10 +17,21 @@ include_directories(${CURL_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Copy dictionary file to program file
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/dictionary.json
-  ${CMAKE_CURRENT_BINARY_DIR}/dictionary.json
-  COPYONLY)
+if(APPLE)
+  # For macOS, copy the file into the .app bundle
+  set(APP_PATH "${CMAKE_CURRENT_BINARY_DIR}/smog-control.app/Contents/MacOS")
+  file(MAKE_DIRECTORY ${APP_PATH})
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/dictionary.json
+    ${APP_PATH}/dictionary.json
+    COPYONLY)
+else()
+  # For other systems, just copy to the build directory
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/dictionary.json
+    ${CMAKE_CURRENT_BINARY_DIR}/dictionary.json
+    COPYONLY)
+endif()
 
 set(PROJECT_SOURCES
         main.cpp
