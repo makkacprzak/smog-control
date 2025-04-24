@@ -36,21 +36,26 @@ public:
     ///@brief Makes all the necessary changes in the GUI to switch languages
     void changeLang();
     /**
-     * @brief Displays requested data on a graph
+     * @brief Displays requested data on a graph type specified by user
      * @param points A QVector of pre-processed points ready to be ploted onto a graph
-     * @param title Title to be displayed on top of the chart
+     * @param station The station user requested. Used for preparing the graph's title
+     * @param param The parameter user requested. Used for preparing the graph's title
      */
-    void displayChart(const QVector<QPointF> &points, const QString &title);
+    void displayChart(const QVector<QPointF> &points, const QString& station, const QString& param);
     /**
-     @brief Checks if either of the drop-down menus were interacted with, and calls the necessary functions
-     @details To give the user more flexibility, the function gets called every time either the parameter menu or the station menu are interacted with.
-     The function then makes a decision on which functions to call.
+    * @brief Checks if either of the drop-down menus were interacted with, and calls the necessary functions
+    * @details To give the user more flexibility, the function gets called every time either the parameter menu or the station menu are interacted with.
+    * The function then makes a decision on which functions to call.
+    * CRUCIAL!!! Because chartView -> chart() uses a parent-child structure,
+    * clearing memory reserved for a QChart object also clears any QSeries or QSet object used in it.
+    * Because of some QCharts tomfoolery, since QT6 QChartView -> charts() cannot be nullptr
+    * I have sort of solved that by adding if(oldChart) delete oldChart; after each chartView->setChart(chart); assignment.
+    * In theory this should be memory safe. However as we know, this is C++.
     */
     void checkAndDrawChart();
 public slots:
     ///@brief Slot get's called when the user clicks the "search" button
     void on_searchBtn_clicked();
-
 private:
     Ui::mainwindow *ui;
     ///@brief To smoothen the interaction between classes, a pointer to the currently used Jfile is added

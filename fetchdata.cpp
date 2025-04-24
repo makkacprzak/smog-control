@@ -8,13 +8,14 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
+/// @brief Macro inspired by gettext, simplifies translations immensly
 #define _(phrase, lang) string(Translate((phrase), (lang)))
 
 using json = nlohmann::json;
 using namespace std;
 
 ///@defgroup fetchdata FetchData Helper Functions
-/// A custom library tasked with fetching data from GIOS API, and then saving it inside a local .json database
+/// Helper functions for methods in FetchData class
 
 /**
  * @brief Helper function: Updates local json files with new data

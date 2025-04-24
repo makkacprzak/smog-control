@@ -112,5 +112,20 @@
 	},
 	"Szukaj":{
 		"en": "Search"
+	},
+	"Min/Max wartości ":{
+		"en": "Min/Max values of "
+	},
+	"Niepoprawny wybrany czas":{
+		"en": "Wrong time selected"
+	},
+	"Zmiany zostaną zaaplikowane dopiero po wybraniu nowego parametru":{
+		"en": "Changes will be applied only after selecting a new parameter"
+	},
+	"Wykres Liniowy":{
+		"en": "Line Graph"
+	},
+	"Wykres Słupkowy":{
+		"en": "Box Graph"
 	}
 }

@@ -40,7 +40,7 @@ Some package managers may use different names for QT libraries, or include diffe
 #### 1. Install QT Creator following these instructions: https://doc.qt.io/qtcreator/creator-how-to-install.html
 
 #### 2. Install curl and libcurl-dev if needed
-Some package managers include libcurl with curl package (e.g. homebrew), so check for yourself and act accordingly
+Some package managers include libcurl with curl package (e.g. homebrew), so check for yourself and act accordingly.
 
 #### 3. Clone repository
 
