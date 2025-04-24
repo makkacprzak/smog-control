@@ -19,7 +19,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Copy dictionary file to program file
 if(APPLE)
   # For macOS, copy the file into the .app bundle
-  set(APP_PATH "${CMAKE_CURRENT_BINARY_DIR}/smog-control.app/Contents/Resources")
+  set(APP_PATH "${CMAKE_CURRENT_BINARY_DIR}/smog-control.app/Contents/MacOS")
   file(MAKE_DIRECTORY ${APP_PATH})
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/dictionary.json
