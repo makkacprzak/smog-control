@@ -50,3 +50,13 @@ git clone https://github.com/makkacprzak/smog-control.git
 
 #### 3. Open project using QT Creator
 On `Welcome` screen select `Open Project...`, navigate to repo directory and select the `CMakeLists.txt` file. From my experience you can accept the default configuration. Then just click the play button, and it will build and run the project.
+
+# Disclosures
+
+* This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
+
+* This project uses [Qt](https://www.qt.io/) framework for GUI features. Qt is licensed under the GNU Lesser General Public License (LGPL) version 3.0. See the [Qt License](LICENSES/LICENSE-QT.md) for more information.
+
+* This project uses curl library for HTTP requests. Curl is licensed under the curl license, which is a mix of the MIT and BSD licenses. See the [Curl License](LICENSES/LICENSE-CURL.md) for more information.
+
+* This project uses [nlohmann/json](https://json.nlohmann.me/) library for JSON parsing. nlohmann/json is licensed under the MIT license. See the [nlohmann/json License](LICENSES/LICENSE-NLOHMANN.md) for more information.
